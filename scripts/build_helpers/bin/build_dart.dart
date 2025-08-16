@@ -102,6 +102,15 @@ Future<bool> _fetchOrUpdateDartSdk() async {
     logger.i('dart-sdk does not exist. Doing full fetch');
 
     await Directory('dart-sdk').create();
+    logger.i('Temp changing global crlf');
+    final gitGlobalCrlfOffProcess = await Process.start(
+      'git',
+      ['config', '--global', 'core.autocrlf', 'false'],
+      runInShell: true,
+    );
+    var gitGlobalCrlfOffResult =
+        await waitForProcessFinish(gitGlobalCrlfOffProcess);
+    if (gitGlobalCrlfOffResult != 0) return false;
 
     final fetchResult = await inDir('dart-sdk', () async {
       final fetchProcess =
@@ -137,6 +146,16 @@ Future<bool> _fetchOrUpdateDartSdk() async {
     );
     var syncResult = await waitForProcessFinish(syncProcess);
     if (syncResult != 0) return syncResult;
+
+    logger.i('Reverting changing global crlf');
+    final gitGlobalCrlfOnProcess = await Process.start(
+      'git',
+      ['config', '--global', 'core.autocrlf', 'true'],
+      runInShell: true,
+    );
+    var gitGlobalCrlfOnResult =
+        await waitForProcessFinish(gitGlobalCrlfOnProcess);
+    if (gitGlobalCrlfOnResult != 0) return false;
 
     return 0;
   });
