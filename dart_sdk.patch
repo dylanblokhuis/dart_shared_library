@@ -14,7 +14,7 @@ index fb3ca5fc537..9760a092244 100644
    import("runtime/runtime_args.gni")
    if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index b77bab8676c..70ecff6ed17 100644
+index b77bab8676c..b9739fab43a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -254,8 +254,9 @@ config("compiler") {
@@ -23,21 +23,20 @@ index b77bab8676c..70ecff6ed17 100644
      } else {
 -      cflags += [ "-fPIE" ]
 -      ldflags += [ "-fPIE" ]
-+       # dart_shared_library overriden - we need -fPIC to properly build
-+       cflags += [ "-fPIC" ]
-+       ldflags += [ "-fPIC" ]
++      # dart_shared_library overriden - we need -fPIC to properly build
++      cflags += [ "-fPIC" ]
++      ldflags += [ "-fPIC" ]
      }
    }
  
 diff --git a/runtime/bin/BUILD.gn b/runtime/bin/BUILD.gn
-index 57d7006036d..0eeeff15c8f 100644
+index 57d7006036d..fd677355210 100644
 --- a/runtime/bin/BUILD.gn
 +++ b/runtime/bin/BUILD.gn
-@@ -1224,3 +1224,48 @@ static_library("dart_embedder_runtime_jit") {
+@@ -1224,3 +1224,47 @@ static_library("dart_embedder_runtime_jit") {
    output_name = "dart_embedder_runtime_jit"
    deps = [ ":dart_embedder_runtime_jit_set" ]
  }
-+
 +
 +static_library("libdart") {
 +  deps = [

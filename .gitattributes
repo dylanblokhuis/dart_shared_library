@@ -1,0 +1,4 @@
+# Default
+* text=auto
+
+dart_sdk.patch text eol=lf
