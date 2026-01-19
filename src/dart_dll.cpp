@@ -170,7 +170,8 @@ bool DartDll_Initialize(const DartDllConfig& config) {
   params.entropy_source = DartUtils::EntropySource;
   params.get_service_assets = GetVMServiceAssetsArchiveCallback;
   params.start_kernel_isolate =
-      dfe.UseDartFrontend() && dfe.CanUseDartFrontend();
+      _dart_dll_config.start_kernel_isolate && dfe.UseDartFrontend() &&
+      dfe.CanUseDartFrontend();
 
   char* initError = Dart_Initialize(&params);
 

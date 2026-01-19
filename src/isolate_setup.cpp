@@ -1,6 +1,9 @@
 #include "isolate_setup.h"
 
 #include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <fstream>
 
 #include <include/dart_api.h>
 #include <include/dart_embedder_api.h>
@@ -22,6 +25,46 @@ extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 }
 
 namespace {
+bool HasSuffix(const char* value, const char* suffix) {
+  if (value == nullptr || suffix == nullptr) {
+    return false;
+  }
+  const size_t value_len = std::strlen(value);
+  const size_t suffix_len = std::strlen(suffix);
+  if (suffix_len > value_len) {
+    return false;
+  }
+  return std::strcmp(value + value_len - suffix_len, suffix) == 0;
+}
+
+bool ReadFileToBuffer(const char* path,
+                      uint8_t** out_buffer,
+                      intptr_t* out_size) {
+  if (path == nullptr || out_buffer == nullptr || out_size == nullptr) {
+    return false;
+  }
+  std::ifstream file(path, std::ios::binary | std::ios::ate);
+  if (!file) {
+    return false;
+  }
+  std::streamsize size = file.tellg();
+  if (size <= 0) {
+    return false;
+  }
+  file.seekg(0, std::ios::beg);
+  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(size));
+  if (buffer == nullptr) {
+    return false;
+  }
+  if (!file.read(reinterpret_cast<char*>(buffer), size)) {
+    free(buffer);
+    return false;
+  }
+  *out_buffer = buffer;
+  *out_size = static_cast<intptr_t>(size);
+  return true;
+}
+
 class DllIsolateGroupData : public IsolateGroupData {
  public:
   DllIsolateGroupData(const char* url,
@@ -181,7 +224,7 @@ Dart_Isolate CreateIsolate(bool is_main_isolate,
                            char** error) {
   Dart_Handle result;
   uint8_t* kernel_buffer = nullptr;
-  intptr_t kernel_buffer_size;
+  intptr_t kernel_buffer_size = 0;
   AppSnapshot* app_snapshot = nullptr;
 
   bool isolate_run_app_snapshot = false;
@@ -206,6 +249,14 @@ Dart_Isolate CreateIsolate(bool is_main_isolate,
       app_snapshot->SetBuffers(
           &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
           &isolate_snapshot_data, &isolate_snapshot_instructions);
+    }
+  }
+
+  if (kernel_buffer == nullptr && HasSuffix(script_uri, ".dill")) {
+    if (!ReadFileToBuffer(script_uri, &kernel_buffer, &kernel_buffer_size)) {
+      *error = dart::Utils::SCreate("Unable to read precompiled kernel: %s",
+                              script_uri);
+      return nullptr;
     }
   }
 

@@ -16,11 +16,13 @@ typedef struct _Dart_Handle* Dart_Handle;
 extern "C" {
 
 struct DartDllConfig {
+  bool start_kernel_isolate;
   bool start_service_isolate;
   int service_port;
 
   DartDllConfig()
-    : start_service_isolate(true)
+    : start_kernel_isolate(true)
+    , start_service_isolate(true)
     , service_port(5858)
   {
     
