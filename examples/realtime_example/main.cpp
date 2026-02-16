@@ -19,11 +19,10 @@ void dart_message_notify_callback(Dart_Isolate isolate) {
 Dart_PersistentHandle _root_library;
 bool init_dart() {
   DartDllConfig config;
-  config.start_kernel_isolate = false;
   DartDll_Initialize(config);
 
   //if package_config.json not exits run pub get
-  _dart_isolate = DartDll_LoadScript("dart/main.dill",
+  _dart_isolate = DartDll_LoadScript("dart/main.dart",
                                      "dart/.dart_tool/package_config.json");
   if (_dart_isolate == nullptr) {
     return false;
@@ -139,27 +138,25 @@ WORM_EXPORT bool get_key_just_pressed(int key_code) {
 
 int main(int argc, char* argv[]) {
   // Create a window with a resolution of 640 x 480.
-  // int options = APP_OPTIONS_WINDOW_POS_CENTERED;
-  // Result result =
-  //     make_app("Fancy Window Title", 0, 0, 0, 640, 480, options, argv[0]);
-  // if (is_error(result)) return -1;
+  int options = APP_OPTIONS_WINDOW_POS_CENTERED;
+  Result result =
+      make_app("Fancy Window Title", 0, 0, 0, 640, 480, options, argv[0]);
+  if (is_error(result)) return -1;
 
   if (!init_dart()) return -1;
 
-  while (true) {
-    // sleep 1 sec
-    // std::this_thread::(std::chrono::seconds(1));
-    // app_update();
+  while (app_is_running()) {
+    app_update();
 
-    // dart_frame(DELTA_TIME);
-    // dart_frame_maintanance();
+    dart_frame(DELTA_TIME);
+    dart_frame_maintanance();
     
-    // render_drawables();
+    render_drawables();
 
-    // app_draw_onto_screen();
+    app_draw_onto_screen();
   }
 
-  // destroy_app();
+  destroy_app();
 
   return 0;
 }

@@ -88,47 +88,14 @@ elseif(LINUX)
         ${CMAKE_DL_LIBS}
     )
 elseif(APPLE)
-    # Find macOS SDK path for system headers
-    execute_process(
-        COMMAND xcrun --show-sdk-path
-        OUTPUT_VARIABLE MACOS_SDK_PATH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-    )
-    
-    if(NOT MACOS_SDK_PATH)
-        # Fallback: try common SDK paths
-        set(MACOS_SDK_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
-    endif()
-    
     if(CMAKE_APPLE_SILICON_PROCESSOR STREQUAL "arm64")
         set(CMAKE_C_COMPILER "${DART_DIR}/buildtools/mac-arm64/clang/bin/clang")
         set(CMAKE_CXX_COMPILER "${DART_DIR}/buildtools/mac-arm64/clang/bin/clang++")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -nostdlib++ ${DART_DIR}/buildtools/mac-arm64/clang/lib/libc++.a -framework Cocoa -framework QuartzCore -framework Security")
     else()
         set(CMAKE_C_COMPILER "${DART_DIR}/buildtools/mac-x64/clang/bin/clang")
         set(CMAKE_CXX_COMPILER "${DART_DIR}/buildtools/mac-x64/clang/bin/clang++")
-    endif()
-    
-    # Add system include paths and linker paths for macOS SDK
-    if(EXISTS "${MACOS_SDK_PATH}")
-        target_compile_options(dart_dll PRIVATE
-            -isysroot "${MACOS_SDK_PATH}"
-        )
-        # Add sysroot to linker flags so it can find system libraries
-        if(CMAKE_APPLE_SILICON_PROCESSOR STREQUAL "arm64")
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -isysroot \"${MACOS_SDK_PATH}\" -nostdlib++ ${DART_DIR}/buildtools/mac-arm64/clang/lib/libc++.a -lc -framework Cocoa -framework QuartzCore -framework Security")
-        else()
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -isysroot \"${MACOS_SDK_PATH}\" -nostdlib++ ${DART_DIR}/buildtools/mac-x64/clang/lib/libc++.a -lc -framework Cocoa -framework QuartzCore -framework Security")
-        endif()
-        MESSAGE(STATUS "Using macOS SDK: ${MACOS_SDK_PATH}")
-    else()
-        MESSAGE(WARNING "macOS SDK not found at ${MACOS_SDK_PATH}, system headers may not be found")
-        # Fallback without sysroot
-        if(CMAKE_APPLE_SILICON_PROCESSOR STREQUAL "arm64")
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -nostdlib++ ${DART_DIR}/buildtools/mac-arm64/clang/lib/libc++.a -lc -framework Cocoa -framework QuartzCore -framework Security")
-        else()
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -nostdlib++ ${DART_DIR}/buildtools/mac-x64/clang/lib/libc++.a -lc -framework Cocoa -framework QuartzCore -framework Security")
-        endif()
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -nostdlib++ ${DART_DIR}/buildtools/mac-x64/clang/lib/libc++.a -framework Cocoa -framework QuartzCore -framework Security")
     endif()
 endif()
 
