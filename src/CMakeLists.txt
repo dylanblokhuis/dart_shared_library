@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS )
 
+
 add_library(dart_dll SHARED
     dart_dll.cpp
     isolate_setup.cpp
